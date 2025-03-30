@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "smart-soder",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

@@ -26,8 +26,9 @@ pub fn main() {
   |> dot.set_path("./.env.local")
   |> dot.set_debug(True)
   |> dot.load
-  wisp.configure_logger()
+  // wisp.configure_logger()
   let secret_key_base = wisp.random_string(64)
+
   //todo add env vars here :) we love .env
   let assert Ok(url)  = envoy.get("DATABASE_URL")
   let db = pog.url_config(url)
@@ -47,11 +48,11 @@ pub fn main() {
 
 
 fn handler(req: Request,conn) -> Response {
-  use <- wisp.log_request(req)
+  // use <- wisp.log_request(req)
   case wisp.path_segments(req) {
     // [] -> home_route(req)
     ["lab"] -> lab_handler(req,conn)
-    ["device"] -> device_handler(req,conn)
+    ["device","mannage"] -> device_management_route(req,conn)
     _ -> not_found()
   }
 }
@@ -81,14 +82,35 @@ fn new_lab_request_decoder() -> decode.Decoder(NewLabRequest) {
 fn lab_handler(req: Request,conn) {
   case req.method {
     http.Delete -> not_found()
-    http.Get -> not_found() //todo retrurn the server rendered html
+    http.Get -> {
+      //todo retrurn the server rendered html
+      use json <- wisp.require_json(req)
+      use <- wisp.rescue_crashes
+      let res = {
+        use bench <- result.try(result.replace_error(decode.run(json,new_lab_request_decoder()),"you sent us bad and evil json "))
+        let assert Ok(lab_rows) = sql.get_lab_by_name(conn,bench.name)
+        //todo return list of lab
+        let assert Ok(lab) = list.first(lab_rows.rows) |> echo
+        let assert Ok(device_rows) = sql.get_devices_in_lab(conn,lab.id)
+        list.map(device_rows.rows,fn(row) {
+          shared.Device(row.mac_address,row.lab_id,row.number,row.status,row.wats_per_hour,row.hours_on,row.minutes_on)
+        })
+        |> shared.LabUseful(lab.id,lab.lab_name,lab.number_of_boards,_)
+        |> shared.encode_lab
+        |> json.to_string_tree
+        |> wisp.json_response(200)
+        |> Ok
+      }
+      use err <- recover_or_return(res) // this returns the final result or recovers with the bellow
+      error_page(err)
+    }
     http.Post -> {
       use json <- wisp.require_json(req)
       use <- wisp.rescue_crashes
       let res = {
         use bench <- result.try(result.replace_error(decode.run(json,new_lab_request_decoder()),"you sent us bad and evil json "))
-        let assert Ok(row) = sql.new_lab(conn,bench.name)
-        let assert Ok(first) = list.first(row.rows)
+        let assert Ok(row) = sql.new_lab(conn,bench.name) |> echo
+        let assert Ok(first) = list.first(row.rows) |> echo
         shared.Lab(first.id,first.lab_name,first.number_of_boards)
         |> shared.encode_lab
         |> json.to_string_tree
@@ -100,23 +122,25 @@ fn lab_handler(req: Request,conn) {
     }
     _ -> not_found()
   }
-
 }
 
 type NewDeviceRequest{
   NewDeviceRequest(
     bench_id:Int,
+    mac_address:String,
     wats_per_hour:Int,
   )
 }
 
 fn new_device_request_decoder() -> decode.Decoder(NewDeviceRequest) {
   use bench_id <- decode.field("bench_id", decode.int)
+  use mac_address <- decode.field("mac_address", decode.string)
   use wats_per_hour <- decode.field("wats_per_hour", decode.int)
-  decode.success(NewDeviceRequest(bench_id:, wats_per_hour:))
+  decode.success(NewDeviceRequest(bench_id:, mac_address:, wats_per_hour:))
 }
 
-fn device_handler(req:Request,conn) {
+
+fn device_management_route(req:Request,conn) {
   case req.method {
     http.Delete -> todo
     http.Get -> todo
@@ -124,7 +148,8 @@ fn device_handler(req:Request,conn) {
       use json <- wisp.require_json(req)
       let res = {
         use info <- result.try(result.replace_error(decode.run(json,new_device_request_decoder()),"you sent us bad and evil json "))
-        let assert Ok(device_row) = sql.new_device(conn,info.bench_id,info.wats_per_hour)
+        // todo handle if mac addres already exists
+        let assert Ok(device_row) = sql.new_device(conn,info.mac_address,info.bench_id,info.wats_per_hour) |> echo
         let assert Ok(first) = list.first(device_row.rows)
         shared.Device(first.mac_address,first.lab_id,first.number,first.status,first.wats_per_hour,first.hours_on,first.minutes_on)
         |> shared.encode_device

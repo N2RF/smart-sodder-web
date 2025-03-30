@@ -63,7 +63,7 @@ pub type NewDeviceRow {
 /// > 🐿️ This function was generated automatically using v3.0.1 of
 /// > the [squirrel package](https://github.com/giacomocavalieri/squirrel).
 ///
-pub fn new_device(db, arg_1, arg_2) {
+pub fn new_device(db, arg_1, arg_2, arg_3) {
   let decoder = {
     use mac_address <- decode.field(0, decode.string)
     use number <- decode.field(1, decode.int)
@@ -86,16 +86,18 @@ pub fn new_device(db, arg_1, arg_2) {
   }
 
   "insert into devices (
+    mac_address,
     lab_id,
     status,
     wats_per_hour,
     hours_on,
     minutes_on
-) VALUES ($1,False,$2,0,0) RETURNING *
+) VALUES ($1,$2,False,$3,0,0) RETURNING *
 "
   |> pog.query
-  |> pog.parameter(pog.int(arg_1))
+  |> pog.parameter(pog.text(arg_1))
   |> pog.parameter(pog.int(arg_2))
+  |> pog.parameter(pog.int(arg_3))
   |> pog.returning(decoder)
   |> pog.execute(db)
 }

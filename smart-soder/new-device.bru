@@ -1,0 +1,19 @@
+meta {
+  name: new-device
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/device/mannage
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "mac_address":"chungus",
+    "bench_id":1,
+    "wats_per_hour":1
+  }
+}

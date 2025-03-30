@@ -13,7 +13,7 @@ CREATE TABLE labs (
 
 CREATE TABLE devices (
     mac_address TEXT,
-    number INT  NOT NULL,
+    number SERIAL NOT NULL,
     lab_id INT  NOT NULL,
     status boolean  NOT NULL,
     wats_per_hour INT  NOT NULL,

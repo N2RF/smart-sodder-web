@@ -1,0 +1,17 @@
+meta {
+  name: create lab
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/lab
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name":"chungus"
+  }
+}

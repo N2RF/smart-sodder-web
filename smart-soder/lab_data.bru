@@ -1,0 +1,17 @@
+meta {
+  name: lab_data
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:3000/lab
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name":"chungus"
+  }
+}
