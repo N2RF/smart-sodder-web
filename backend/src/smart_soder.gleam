@@ -17,7 +17,9 @@ import gleam/option.{None, Some}
 import mist.{type Connection, type ResponseData}
 import lustre/element
 import wisp.{type Request, type Response}
+import frountend
 import dot_env as dot
+import shared
 
 pub fn main() {
   dot.new()
@@ -47,10 +49,15 @@ pub fn main() {
 fn handler(req: Request,conn) -> Response {
   use <- wisp.log_request(req)
   case wisp.path_segments(req) {
+    // [] -> home_route(req)
     ["lab"] -> lab_handler(req,conn)
     ["device"] -> device_handler(req,conn)
     _ -> not_found()
   }
+}
+
+fn home_route(req: Request) {
+  // page_scaffold(frountend.view())
 }
 
 fn recover_or_return(res:Result(a,b),callback: fn(b) -> a) {
@@ -82,8 +89,8 @@ fn lab_handler(req: Request,conn) {
         use bench <- result.try(result.replace_error(decode.run(json,new_lab_request_decoder()),"you sent us bad and evil json "))
         let assert Ok(row) = sql.new_lab(conn,bench.name)
         let assert Ok(first) = list.first(row.rows)
-        Lab(first.id,first.lab_name,first.number_of_boards)
-        |> encode_lab
+        shared.Lab(first.id,first.lab_name,first.number_of_boards)
+        |> shared.encode_lab
         |> json.to_string_tree
         |> wisp.json_response(200)
         |> Ok
@@ -119,8 +126,8 @@ fn device_handler(req:Request,conn) {
         use info <- result.try(result.replace_error(decode.run(json,new_device_request_decoder()),"you sent us bad and evil json "))
         let assert Ok(device_row) = sql.new_device(conn,info.bench_id,info.wats_per_hour)
         let assert Ok(first) = list.first(device_row.rows)
-        Device(first.mac_address,first.lab_id,first.number,first.status,first.wats_per_hour,first.hours_on,first.minutes_on)
-        |> encode_device
+        shared.Device(first.mac_address,first.lab_id,first.number,first.status,first.wats_per_hour,first.hours_on,first.minutes_on)
+        |> shared.encode_device
         |> json.to_string_tree
         |> wisp.json_response(200)
         |> Ok

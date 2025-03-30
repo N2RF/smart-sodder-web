@@ -4,8 +4,7 @@ import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
-import lustre/ui
-
+import shared
 // MAIN ------------------------------------------------------------------------
 
 pub fn main() {
@@ -18,7 +17,9 @@ pub fn main() {
 // MODEL -----------------------------------------------------------------------
 
 type Model {
-  Model()
+  Model(
+    something:String
+  )
 }
 
 fn init(initial_count: Int) -> Model {

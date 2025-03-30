@@ -25,8 +25,8 @@ birl = ">= 1.8.0 and < 2.0.0"
 wisp = ">= 1.6.0 and < 2.0.0"
 envoy = ">= 1.0.2 and < 2.0.0"
 dot_env = ">= 1.2.0 and < 2.0.0"
-frountend = {path = "./frountend"}
-shared = {path = "./shared"}
+frountend = {path = "../frountend"}
+shared = {path = "../shared"}
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"

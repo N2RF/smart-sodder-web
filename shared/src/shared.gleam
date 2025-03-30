@@ -2,29 +2,59 @@ import birl
 import gleam/json
 import gleam/dynamic/decode
 
-
+//todo refgactor to be usfle
 pub type Lab {
   Lab(
     id: Int,
     bench_name:String,
     number_of_boards:Int,
   )
+  LabUseful(
+    id: Int,
+    bench_name:String,
+    number_of_boards:Int,
+    devices:List(Device)
+  )
 }
 
 pub fn encode_lab(lab: Lab) -> json.Json {
-  json.object([
-    #("bench_name", json.string(lab.bench_name)),
-    #("number_of_boards", json.int(lab.number_of_boards)),
-    #("id", json.int(lab.id)),
-  ])
+  case lab {
+    Lab(..) -> json.object([
+      #("type", json.string("lab")),
+      #("id", json.int(lab.id)),
+      #("bench_name", json.string(lab.bench_name)),
+      #("number_of_boards", json.int(lab.number_of_boards)),
+    ])
+    LabUseful(..) -> json.object([
+      #("type", json.string("lab_useful")),
+      #("id", json.int(lab.id)),
+      #("bench_name", json.string(lab.bench_name)),
+      #("number_of_boards", json.int(lab.number_of_boards)),
+      #("devices", json.array(lab.devices, encode_device)),
+    ])
+  }
 }
 
 pub fn lab_decoder() -> decode.Decoder(Lab) {
-  use bench_name <- decode.field("bench_name", decode.string)
-  use number_of_boards <- decode.field("number_of_boards", decode.int)
-  use id <- decode.field("id", decode.int)
-  decode.success(Lab(bench_name:, number_of_boards:, id:))
+  use variant <- decode.field("type", decode.string)
+  case variant {
+    "lab" -> {
+      use id <- decode.field("id", decode.int)
+      use bench_name <- decode.field("bench_name", decode.string)
+      use number_of_boards <- decode.field("number_of_boards", decode.int)
+      decode.success(Lab(id:, bench_name:, number_of_boards:))
+    }
+    "lab_useful" -> {
+      use id <- decode.field("id", decode.int)
+      use bench_name <- decode.field("bench_name", decode.string)
+      use number_of_boards <- decode.field("number_of_boards", decode.int)
+      use devices <- decode.field("devices", decode.list(device_decoder()))
+      decode.success(LabUseful(id:, bench_name:, number_of_boards:, devices:))
+    }
+    _ -> decode.failure(Lab(-1,"no name",0), "Lab")
+  }
 }
+
 
 
 

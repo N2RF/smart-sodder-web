@@ -377,6 +377,102 @@ function makeError(variant, module, line, fn, message, extra) {
 var None = class extends CustomType {
 };
 
+// build/dev/javascript/gleam_stdlib/gleam/dict.mjs
+function insert(dict2, key, value) {
+  return map_insert(key, value, dict2);
+}
+function reverse_and_concat(loop$remaining, loop$accumulator) {
+  while (true) {
+    let remaining = loop$remaining;
+    let accumulator = loop$accumulator;
+    if (remaining.hasLength(0)) {
+      return accumulator;
+    } else {
+      let first3 = remaining.head;
+      let rest = remaining.tail;
+      loop$remaining = rest;
+      loop$accumulator = prepend(first3, accumulator);
+    }
+  }
+}
+function do_keys_loop(loop$list, loop$acc) {
+  while (true) {
+    let list4 = loop$list;
+    let acc = loop$acc;
+    if (list4.hasLength(0)) {
+      return reverse_and_concat(acc, toList([]));
+    } else {
+      let key = list4.head[0];
+      let rest = list4.tail;
+      loop$list = rest;
+      loop$acc = prepend(key, acc);
+    }
+  }
+}
+function keys(dict2) {
+  return do_keys_loop(map_to_list(dict2), toList([]));
+}
+
+// build/dev/javascript/gleam_stdlib/gleam/list.mjs
+function fold(loop$list, loop$initial, loop$fun) {
+  while (true) {
+    let list4 = loop$list;
+    let initial = loop$initial;
+    let fun = loop$fun;
+    if (list4.hasLength(0)) {
+      return initial;
+    } else {
+      let first$1 = list4.head;
+      let rest$1 = list4.tail;
+      loop$list = rest$1;
+      loop$initial = fun(initial, first$1);
+      loop$fun = fun;
+    }
+  }
+}
+function index_fold_loop(loop$over, loop$acc, loop$with, loop$index) {
+  while (true) {
+    let over = loop$over;
+    let acc = loop$acc;
+    let with$ = loop$with;
+    let index3 = loop$index;
+    if (over.hasLength(0)) {
+      return acc;
+    } else {
+      let first$1 = over.head;
+      let rest$1 = over.tail;
+      loop$over = rest$1;
+      loop$acc = with$(acc, first$1, index3);
+      loop$with = with$;
+      loop$index = index3 + 1;
+    }
+  }
+}
+function index_fold(list4, initial, fun) {
+  return index_fold_loop(list4, initial, fun, 0);
+}
+
+// build/dev/javascript/gleam_stdlib/gleam/string.mjs
+function drop_start(loop$string, loop$num_graphemes) {
+  while (true) {
+    let string5 = loop$string;
+    let num_graphemes = loop$num_graphemes;
+    let $ = num_graphemes > 0;
+    if (!$) {
+      return string5;
+    } else {
+      let $1 = pop_grapheme(string5);
+      if ($1.isOk()) {
+        let string$1 = $1[0][1];
+        loop$string = string$1;
+        loop$num_graphemes = num_graphemes - 1;
+      } else {
+        return string5;
+      }
+    }
+  }
+}
+
 // build/dev/javascript/gleam_stdlib/dict.mjs
 var referenceMap = /* @__PURE__ */ new WeakMap();
 var tempDataView = /* @__PURE__ */ new DataView(
@@ -1091,22 +1187,22 @@ function to_string(term) {
   return term.toString();
 }
 var segmenter = void 0;
-function graphemes_iterator(string3) {
+function graphemes_iterator(string5) {
   if (globalThis.Intl && Intl.Segmenter) {
     segmenter ||= new Intl.Segmenter();
-    return segmenter.segment(string3)[Symbol.iterator]();
+    return segmenter.segment(string5)[Symbol.iterator]();
   }
 }
-function pop_grapheme(string3) {
-  let first2;
-  const iterator = graphemes_iterator(string3);
+function pop_grapheme(string5) {
+  let first3;
+  const iterator = graphemes_iterator(string5);
   if (iterator) {
-    first2 = iterator.next().value?.segment;
+    first3 = iterator.next().value?.segment;
   } else {
-    first2 = string3.match(/./su)?.[0];
+    first3 = string5.match(/./su)?.[0];
   }
-  if (first2) {
-    return new Ok([first2, string3.slice(first2.length)]);
+  if (first3) {
+    return new Ok([first3, string5.slice(first3.length)]);
   } else {
     return new Error(Nil);
   }
@@ -1138,107 +1234,11 @@ var trim_end_regex = /* @__PURE__ */ new RegExp(`[${unicode_whitespaces}]*$`);
 function new_map() {
   return Dict.new();
 }
-function map_to_list(map4) {
-  return List.fromArray(map4.entries());
+function map_to_list(map5) {
+  return List.fromArray(map5.entries());
 }
-function map_insert(key, value, map4) {
-  return map4.set(key, value);
-}
-
-// build/dev/javascript/gleam_stdlib/gleam/dict.mjs
-function insert(dict2, key, value) {
-  return map_insert(key, value, dict2);
-}
-function reverse_and_concat(loop$remaining, loop$accumulator) {
-  while (true) {
-    let remaining = loop$remaining;
-    let accumulator = loop$accumulator;
-    if (remaining.hasLength(0)) {
-      return accumulator;
-    } else {
-      let first2 = remaining.head;
-      let rest = remaining.tail;
-      loop$remaining = rest;
-      loop$accumulator = prepend(first2, accumulator);
-    }
-  }
-}
-function do_keys_loop(loop$list, loop$acc) {
-  while (true) {
-    let list2 = loop$list;
-    let acc = loop$acc;
-    if (list2.hasLength(0)) {
-      return reverse_and_concat(acc, toList([]));
-    } else {
-      let key = list2.head[0];
-      let rest = list2.tail;
-      loop$list = rest;
-      loop$acc = prepend(key, acc);
-    }
-  }
-}
-function keys(dict2) {
-  return do_keys_loop(map_to_list(dict2), toList([]));
-}
-
-// build/dev/javascript/gleam_stdlib/gleam/list.mjs
-function fold(loop$list, loop$initial, loop$fun) {
-  while (true) {
-    let list2 = loop$list;
-    let initial = loop$initial;
-    let fun = loop$fun;
-    if (list2.hasLength(0)) {
-      return initial;
-    } else {
-      let first$1 = list2.head;
-      let rest$1 = list2.tail;
-      loop$list = rest$1;
-      loop$initial = fun(initial, first$1);
-      loop$fun = fun;
-    }
-  }
-}
-function index_fold_loop(loop$over, loop$acc, loop$with, loop$index) {
-  while (true) {
-    let over = loop$over;
-    let acc = loop$acc;
-    let with$ = loop$with;
-    let index3 = loop$index;
-    if (over.hasLength(0)) {
-      return acc;
-    } else {
-      let first$1 = over.head;
-      let rest$1 = over.tail;
-      loop$over = rest$1;
-      loop$acc = with$(acc, first$1, index3);
-      loop$with = with$;
-      loop$index = index3 + 1;
-    }
-  }
-}
-function index_fold(list2, initial, fun) {
-  return index_fold_loop(list2, initial, fun, 0);
-}
-
-// build/dev/javascript/gleam_stdlib/gleam/string.mjs
-function drop_start(loop$string, loop$num_graphemes) {
-  while (true) {
-    let string3 = loop$string;
-    let num_graphemes = loop$num_graphemes;
-    let $ = num_graphemes > 0;
-    if (!$) {
-      return string3;
-    } else {
-      let $1 = pop_grapheme(string3);
-      if ($1.isOk()) {
-        let string$1 = $1[0][1];
-        loop$string = string$1;
-        loop$num_graphemes = num_graphemes - 1;
-      } else {
-        return string3;
-      }
-    }
-  }
+function map_insert(key, value, map5) {
+  return map5.set(key, value);
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/bool.mjs
@@ -1266,6 +1266,18 @@ var Text = class extends CustomType {
   constructor(content) {
     super();
     this.content = content;
+  }
+};
+var Element = class extends CustomType {
+  constructor(key, namespace, tag, attrs, children2, self_closing, void$) {
+    super();
+    this.key = key;
+    this.namespace = namespace;
+    this.tag = tag;
+    this.attrs = attrs;
+    this.children = children2;
+    this.self_closing = self_closing;
+    this.void = void$;
   }
 };
 var Map2 = class extends CustomType {
@@ -1340,6 +1352,39 @@ function handlers(element2) {
 }
 
 // build/dev/javascript/lustre/lustre/element.mjs
+function element(tag, attrs, children2) {
+  if (tag === "area") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "base") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "br") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "col") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "embed") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "hr") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "img") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "input") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "link") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "meta") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "param") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "source") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "track") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else if (tag === "wbr") {
+    return new Element("", "", tag, attrs, toList([]), false, true);
+  } else {
+    return new Element("", "", tag, attrs, children2, false, false);
+  }
+}
 function text(content) {
   return new Text(content);
 }
@@ -1636,25 +1681,25 @@ function createElementNode({ prev, next, dispatch, stack }) {
   return el;
 }
 var registeredHandlers = /* @__PURE__ */ new WeakMap();
-function lustreGenericEventHandler(event) {
-  const target = event.currentTarget;
+function lustreGenericEventHandler(event2) {
+  const target = event2.currentTarget;
   if (!registeredHandlers.has(target)) {
-    target.removeEventListener(event.type, lustreGenericEventHandler);
+    target.removeEventListener(event2.type, lustreGenericEventHandler);
     return;
   }
   const handlersForEventTarget = registeredHandlers.get(target);
-  if (!handlersForEventTarget.has(event.type)) {
-    target.removeEventListener(event.type, lustreGenericEventHandler);
+  if (!handlersForEventTarget.has(event2.type)) {
+    target.removeEventListener(event2.type, lustreGenericEventHandler);
     return;
   }
-  handlersForEventTarget.get(event.type)(event);
+  handlersForEventTarget.get(event2.type)(event2);
 }
-function lustreServerEventHandler(event) {
-  const el = event.currentTarget;
-  const tag = el.getAttribute(`data-lustre-on-${event.type}`);
+function lustreServerEventHandler(event2) {
+  const el = event2.currentTarget;
+  const tag = el.getAttribute(`data-lustre-on-${event2.type}`);
   const data = JSON.parse(el.getAttribute("data-lustre-data") || "{}");
   const include = JSON.parse(el.getAttribute("data-lustre-include") || "[]");
-  switch (event.type) {
+  switch (event2.type) {
     case "input":
     case "change":
       include.push("target.value");
@@ -1665,7 +1710,7 @@ function lustreServerEventHandler(event) {
     data: include.reduce(
       (data2, property) => {
         const path = property.split(".");
-        for (let i = 0, o = data2, e = event; i < path.length; i++) {
+        for (let i = 0, o = data2, e = event2; i < path.length; i++) {
           if (i === path.length - 1) {
             o[path[i]] = e[path[i]];
           } else {
@@ -1755,13 +1800,13 @@ var LustreClientApplication = class _LustreClientApplication {
    *
    * @returns {Gleam.Ok<(action: Lustre.Action<Lustre.Client, Msg>>) => void>}
    */
-  static start({ init: init2, update, view }, selector, flags) {
+  static start({ init: init3, update: update2, view: view2 }, selector, flags) {
     if (!is_browser())
       return new Error(new NotABrowser());
     const root = selector instanceof HTMLElement ? selector : document.querySelector(selector);
     if (!root)
       return new Error(new ElementNotFound(selector));
-    const app = new _LustreClientApplication(root, init2(flags), update, view);
+    const app = new _LustreClientApplication(root, init3(flags), update2, view2);
     return new Ok((action) => app.send(action));
   }
   /**
@@ -1772,11 +1817,11 @@ var LustreClientApplication = class _LustreClientApplication {
    *
    * @returns {LustreClientApplication}
    */
-  constructor(root, [init2, effects], update, view) {
+  constructor(root, [init3, effects], update2, view2) {
     this.root = root;
-    this.#model = init2;
-    this.#update = update;
-    this.#view = view;
+    this.#model = init3;
+    this.#update = update2;
+    this.#view = view2;
     this.#tickScheduled = window.setTimeout(
       () => this.#tick(effects.all.toArray(), true),
       0
@@ -1796,8 +1841,8 @@ var LustreClientApplication = class _LustreClientApplication {
         this.#queue = [];
         this.#model = action[0][0];
         const vdom = this.#view(this.#model);
-        const dispatch = (handler, immediate = false) => (event) => {
-          const result = handler(event);
+        const dispatch = (handler, immediate = false) => (event2) => {
+          const result = handler(event2);
           if (result instanceof Ok) {
             this.send(new Dispatch(result[0], immediate));
           }
@@ -1816,10 +1861,10 @@ var LustreClientApplication = class _LustreClientApplication {
         this.#tickScheduled = window.setTimeout(() => this.#tick());
       }
     } else if (action instanceof Emit2) {
-      const event = action[0];
+      const event2 = action[0];
       const data = action[1];
       this.root.dispatchEvent(
-        new CustomEvent(event, {
+        new CustomEvent(event2, {
           detail: data,
           bubbles: true,
           composed: true
@@ -1853,8 +1898,8 @@ var LustreClientApplication = class _LustreClientApplication {
     this.#tickScheduled = void 0;
     this.#flush(effects);
     const vdom = this.#view(this.#model);
-    const dispatch = (handler, immediate = false) => (event) => {
-      const result = handler(event);
+    const dispatch = (handler, immediate = false) => (event2) => {
+      const result = handler(event2);
       if (result instanceof Ok) {
         this.send(new Dispatch(result[0], immediate));
       }
@@ -1872,8 +1917,8 @@ var LustreClientApplication = class _LustreClientApplication {
     while (effects.length > 0) {
       const effect = effects.shift();
       const dispatch = (msg) => this.send(new Dispatch(msg));
-      const emit2 = (event, data) => this.root.dispatchEvent(
-        new CustomEvent(event, {
+      const emit2 = (event2, data) => this.root.dispatchEvent(
+        new CustomEvent(event2, {
           detail: data,
           bubbles: true,
           composed: true
@@ -1891,20 +1936,20 @@ var LustreClientApplication = class _LustreClientApplication {
 };
 var start = LustreClientApplication.start;
 var LustreServerApplication = class _LustreServerApplication {
-  static start({ init: init2, update, view, on_attribute_change }, flags) {
+  static start({ init: init3, update: update2, view: view2, on_attribute_change }, flags) {
     const app = new _LustreServerApplication(
-      init2(flags),
-      update,
-      view,
+      init3(flags),
+      update2,
+      view2,
       on_attribute_change
     );
     return new Ok((action) => app.send(action));
   }
-  constructor([model, effects], update, view, on_attribute_change) {
+  constructor([model, effects], update2, view2, on_attribute_change) {
     this.#model = model;
-    this.#update = update;
-    this.#view = view;
-    this.#html = view(model);
+    this.#update = update2;
+    this.#view = view2;
+    this.#html = view2(model);
     this.#onAttributeChange = on_attribute_change;
     this.#renderers = /* @__PURE__ */ new Map();
     this.#handlers = handlers(this.#html);
@@ -1930,9 +1975,9 @@ var LustreServerApplication = class _LustreServerApplication {
       this.#queue.push(action[0]);
       this.#tick();
     } else if (action instanceof Emit2) {
-      const event = new Emit(action[0], action[1]);
+      const event2 = new Emit(action[0], action[1]);
       for (const [_, renderer] of this.#renderers) {
-        renderer(event);
+        renderer(event2);
       }
     } else if (action instanceof Event2) {
       const handler = this.#handlers.get(action[0]);
@@ -1983,8 +2028,8 @@ var LustreServerApplication = class _LustreServerApplication {
     while (effects.length > 0) {
       const effect = effects.shift();
       const dispatch = (msg) => this.send(new Dispatch(msg));
-      const emit2 = (event, data) => this.root.dispatchEvent(
-        new CustomEvent(event, {
+      const emit2 = (event2, data) => this.root.dispatchEvent(
+        new CustomEvent(event2, {
           detail: data,
           bubbles: true,
           composed: true
@@ -2005,11 +2050,11 @@ var is_browser = () => globalThis.window && window.document;
 
 // build/dev/javascript/lustre/lustre.mjs
 var App = class extends CustomType {
-  constructor(init2, update, view, on_attribute_change) {
+  constructor(init3, update2, view2, on_attribute_change) {
     super();
-    this.init = init2;
-    this.update = update;
-    this.view = view;
+    this.init = init3;
+    this.update = update2;
+    this.view = view2;
     this.on_attribute_change = on_attribute_change;
   }
 };
@@ -2021,20 +2066,17 @@ var ElementNotFound = class extends CustomType {
 };
 var NotABrowser = class extends CustomType {
 };
-function application(init2, update, view) {
-  return new App(init2, update, view, new None());
+function application(init3, update2, view2) {
+  return new App(init3, update2, view2, new None());
 }
-function element(html) {
-  let init2 = (_) => {
-    return [void 0, none()];
+function simple(init3, update2, view2) {
+  let init$1 = (flags) => {
+    return [init3(flags), none()];
   };
-  let update = (_, _1) => {
-    return [void 0, none()];
+  let update$1 = (model, msg) => {
+    return [update2(model, msg), none()];
   };
-  let view = (_) => {
-    return html;
-  };
-  return application(init2, update, view);
+  return application(init$1, update$1, view2);
 }
 function start2(app, selector, flags) {
   return guard(
@@ -2046,15 +2088,46 @@ function start2(app, selector, flags) {
   );
 }
 
+// build/dev/javascript/lustre/lustre/element/html.mjs
+function text2(content) {
+  return text(content);
+}
+function div(attrs, children2) {
+  return element("div", attrs, children2);
+}
+
 // build/dev/javascript/frountend/frountend.mjs
+function init2(initial_count) {
+  throw makeError(
+    "todo",
+    "frountend",
+    25,
+    "init",
+    "`todo` expression evaluated. This code has not yet been implemented.",
+    {}
+  );
+}
+function update(model, msg) {
+  throw makeError(
+    "todo",
+    "frountend",
+    35,
+    "update",
+    "`todo` expression evaluated. This code has not yet been implemented.",
+    {}
+  );
+}
+function view(model) {
+  return div(toList([]), toList([text2("cringe")]));
+}
 function main() {
-  let app = element(text("Hello, world!"));
-  let $ = start2(app, "#app", void 0);
+  let app = simple(init2, update, view);
+  let $ = start2(app, "#app", 0);
   if (!$.isOk()) {
     throw makeError(
       "let_assert",
       "frountend",
-      7,
+      12,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $ }
