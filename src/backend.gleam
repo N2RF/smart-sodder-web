@@ -109,7 +109,9 @@ fn history_decoder() -> decode.Decoder(History) {
 
 pub fn main() {
   wisp.configure_logger()
+  dotenv.config() // this should load .env file
   let secret_key_base = wisp.random_string(64)
+  //todo add env vars here :) we love .env
   let db =
     pog.default_config()
     |> pog.host("localhost")
@@ -128,7 +130,7 @@ pub fn main() {
 fn handler(req: Request,conn) -> Response {
   use <- wisp.log_request(req)
   case wisp.path_segments(req) {
-    ["bench"] -> bench_handler(req,conn)
+    ["lab"] -> lab_handler(req,conn)
     ["device"] -> device_handler(req,conn)
     _ -> not_found()
   }
@@ -152,10 +154,10 @@ fn new_lab_request_decoder() -> decode.Decoder(NewLabRequest) {
   decode.success(NewLabRequest(name:))
 }
 
-fn bench_handler(req: Request,conn) {
+fn lab_handler(req: Request,conn) {
   case req.method {
     http.Delete -> not_found()
-    http.Get -> not_found()
+    http.Get -> not_found() //todo retrurn the server rendered html
     http.Post -> {
       use json <- wisp.require_json(req)
       use <- wisp.rescue_crashes
