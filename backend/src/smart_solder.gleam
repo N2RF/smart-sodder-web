@@ -54,7 +54,7 @@ fn handler(req: Request,conn) -> Response {
   case wisp.path_segments(req) {
     // [] -> home_route(req)
     ["lab"] -> lab_handler(req,conn)
-    ["device","mannage"] -> device_management_route(req,conn)
+    ["device","manage"] -> device_management_route(req,conn)
     ["migrate"] -> {
       let _ =  "DROP TABLE IF EXISTS  devices cascade ;
       DROP TABLE IF EXISTS  benches cascade ;
