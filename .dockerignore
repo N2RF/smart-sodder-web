@@ -1,0 +1,28 @@
+# flyctl launch added from .idea/.gitignore
+# Default ignored files
+.idea/shelf
+.idea/workspace.xml
+# Editor-based HTTP Client requests
+.idea/httpRequests
+# Datasource local storage ignored files
+.idea/dataSources
+.idea/dataSources.local.xml
+
+# flyctl launch added from backend/.gitignore
+backend/**/*.beam
+backend/**/*.ez
+backend/build
+backend/**/erl_crash.dump
+
+# flyctl launch added from frountend/.gitignore
+frountend/**/*.beam
+frountend/**/*.ez
+frountend/build
+frountend/**/erl_crash.dump
+
+# flyctl launch added from shared/.gitignore
+shared/**/*.beam
+shared/**/*.ez
+shared/build
+shared/**/erl_crash.dump
+fly.toml

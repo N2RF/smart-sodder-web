@@ -30,16 +30,18 @@ pub fn main() {
   let secret_key_base = wisp.random_string(64)
 
   //todo add env vars here :) we love .env
-  let assert Ok(url)  = envoy.get("DATABASE_URL")
+  let assert Ok(url)  = envoy.get("DATABASE_URL") |> echo
   let db = pog.url_config(url)
     |> result.unwrap(pog.default_config())
     |> pog.pool_size(15)
     |> pog.connect
+
   let handler = handler(_,db)
 
   let assert Ok(_) =
     wisp_mist.handler(handler, secret_key_base)
     |> mist.new
+    |> mist.bind("0.0.0.0")
     |> mist.port(3000)
     |> mist.start_http
 
@@ -53,6 +55,43 @@ fn handler(req: Request,conn) -> Response {
     // [] -> home_route(req)
     ["lab"] -> lab_handler(req,conn)
     ["device","mannage"] -> device_management_route(req,conn)
+    ["migrate"] -> {
+      let _ =  "DROP TABLE IF EXISTS  devices cascade ;
+      DROP TABLE IF EXISTS  benches cascade ;
+      DROP TABLE IF EXISTS  lab cascade ;
+      DROP TABLE IF EXISTS  labs cascade ;
+      DROP TABLE IF EXISTS history cascade ;
+
+      CREATE TABLE labs (
+           id SERIAL,
+           lab_name TEXT NOT NULL,
+           number_of_boards INT NOT NULL,
+           PRIMARY KEY (id)
+      );
+
+      CREATE TABLE devices (
+          mac_address TEXT,
+          number SERIAL NOT NULL,
+          lab_id INT  NOT NULL,
+          status boolean  NOT NULL,
+          wats_per_hour INT  NOT NULL,
+          hours_on INT  NOT NULL,
+          minutes_on INT  NOT NULL,
+          PRIMARY KEY (mac_address),
+          FOREIGN KEY (lab_id) REFERENCES labs(id)
+      );
+
+
+      CREATE TABLE history (
+          Id SERIAL PRIMARY KEY,
+          mac_address text,
+          Status boolean,
+          Time TEXT,
+          FOREIGN KEY (mac_address) REFERENCES devices(mac_address)
+      );
+"|>    pog.query() |> pog.execute(conn) |> echo
+      wisp.ok()
+    }
     _ -> not_found()
   }
 }
