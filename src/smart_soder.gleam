@@ -1,3 +1,4 @@
+import envoy
 import gleam/list
 import pog
 import sql
@@ -16,114 +17,30 @@ import gleam/option.{None, Some}
 import mist.{type Connection, type ResponseData}
 import lustre/element
 import wisp.{type Request, type Response}
-
-
-
-type Lab {
-  Lab(
-    id: Int,
-    bench_name:String,
-    number_of_boards:Int,
-  )
-}
-
-fn encode_lab(lab: Lab) -> json.Json {
-  json.object([
-    #("bench_name", json.string(lab.bench_name)),
-    #("number_of_boards", json.int(lab.number_of_boards)),
-    #("id", json.int(lab.id)),
-  ])
-}
-
-fn lab_decoder() -> decode.Decoder(Lab) {
-  use bench_name <- decode.field("bench_name", decode.string)
-  use number_of_boards <- decode.field("number_of_boards", decode.int)
-  use id <- decode.field("id", decode.int)
-  decode.success(Lab(bench_name:, number_of_boards:, id:))
-}
-
-
-
-
-type Device {
-  Device(
-    id:Int,
-    bench_id:Int,
-    status:Bool,
-    wats_per_hour:Int,
-    hours_on:Int,
-    minutes_on:Int,
-  )
-}
-
-fn encode_device(device: Device) -> json.Json {
-  json.object([
-    #("id", json.int(device.id)),
-    #("bench_id", json.int(device.bench_id)),
-    #("status", json.bool(device.status)),
-    #("wats_per_hour", json.int(device.wats_per_hour)),
-    #("hours_on", json.int(device.hours_on)),
-    #("minutes_on", json.int(device.minutes_on)),
-  ])
-}
-
-fn device_decoder() -> decode.Decoder(Device) {
-  use id <- decode.field("id", decode.int)
-  use bench_id <- decode.field("bench_id", decode.int)
-  use status <- decode.field("status", decode.bool)
-  use wats_per_hour <- decode.field("wats_per_hour", decode.int)
-  use hours_on <- decode.field("hours_on", decode.int)
-  use minutes_on <- decode.field("minutes_on", decode.int)
-  decode.success(Device(id:, bench_id:, status:, wats_per_hour:, hours_on:, minutes_on:))
-}
-type History {
-  History(
-    id:Int,
-    device_id:Int,
-    status:Bool,
-    time:birl.Time,
-  )
-}
-
-fn encode_history(history: History) -> json.Json {
-  json.object([
-    #("id", json.int(history.id)),
-    #("device_id", json.int(history.device_id)),
-    #("status", json.bool(history.status)),
-    #("time",  json.string(birl.to_naive_time_string(history.time))),
-  ])
-}
-
-fn history_decoder() -> decode.Decoder(History) {
-  use id <- decode.field("id", decode.int)
-  use device_id <- decode.field("device_id", decode.int)
-  use status <- decode.field("status", decode.bool)
-  use time <- decode.field("time", decode.string)
-  case birl.from_naive(time) {
-    Ok(time) ->   decode.success(History(id:, device_id:, status:,time:time ))
-    Error(_) -> decode.failure(History(id:, device_id:, status:,time:birl.now() ),"history")
-  }
-}
-
-
+import dot_env as dot
 
 pub fn main() {
+  dot.new()
+  |> dot.set_path("./.env.local")
+  |> dot.set_debug(True)
+  |> dot.load
   wisp.configure_logger()
-  dotenv.config() // this should load .env file
   let secret_key_base = wisp.random_string(64)
   //todo add env vars here :) we love .env
-  let db =
-    pog.default_config()
-    |> pog.host("localhost")
-    |> pog.database("my_database")
+  let assert Ok(url)  = envoy.get("DATABASE_URL")
+  let db = pog.url_config(url)
+    |> result.unwrap(pog.default_config())
     |> pog.pool_size(15)
     |> pog.connect
   let handler = handler(_,db)
+
   let assert Ok(_) =
     wisp_mist.handler(handler, secret_key_base)
     |> mist.new
-    |> mist.port(8000)
+    |> mist.port(3000)
     |> mist.start_http
+
+    process.sleep_forever()
 }
 
 
@@ -200,10 +117,13 @@ fn device_handler(req:Request,conn) {
       use json <- wisp.require_json(req)
       let res = {
         use info <- result.try(result.replace_error(decode.run(json,new_device_request_decoder()),"you sent us bad and evil json "))
-        let sql = sql.new_device(conn,info.bench_id,info.wats_per_hour)
-        |> result.replace_error("we failed to add this to the db :( we are so sorry we let you down")
-        use _  <- result.try(sql)
-        Ok(wisp.ok())
+        let assert Ok(device_row) = sql.new_device(conn,info.bench_id,info.wats_per_hour)
+        let assert Ok(first) = list.first(device_row.rows)
+        Device(first.mac_address,first.lab_id,first.number,first.status,first.wats_per_hour,first.hours_on,first.minutes_on)
+        |> encode_device
+        |> json.to_string_tree
+        |> wisp.json_response(200)
+        |> Ok
       }
       use err <- recover_or_return(res) // this returns the final result or recovers with the bellow
       error_page(err)
@@ -241,7 +161,7 @@ fn page_scaffold(
         attribute.attribute("content", "width=device-width, initial-scale=1.0"),
         attribute.name("viewport"),
       ]),
-      html.title([], "muse"),
+      html.title([], "smart lab"),
       html.link([
                attribute.href("https://fonts.googleapis.com"),
                attribute.rel("preconnect"),

@@ -85,7 +85,7 @@
   },
   {
     "label": "run squirl",
-    "command": "./backend/run-squarl.sh",
+    "command": "./run-squarl.sh",
     //"args": [],
     // Env overrides for the command, will be appended to the terminal's environment from the settings.
     "env": { "foo": "bar" },

@@ -48,12 +48,12 @@ where
 pub type NewDeviceRow {
   NewDeviceRow(
     mac_address: String,
-    number: Option(Int),
-    lab_id: Option(Int),
-    status: Option(Bool),
-    wats_per_hour: Option(Int),
-    hours_on: Option(Int),
-    minutes_on: Option(Int),
+    number: Int,
+    lab_id: Int,
+    status: Bool,
+    wats_per_hour: Int,
+    hours_on: Int,
+    minutes_on: Int,
   )
 }
 
@@ -66,12 +66,12 @@ pub type NewDeviceRow {
 pub fn new_device(db, arg_1, arg_2) {
   let decoder = {
     use mac_address <- decode.field(0, decode.string)
-    use number <- decode.field(1, decode.optional(decode.int))
-    use lab_id <- decode.field(2, decode.optional(decode.int))
-    use status <- decode.field(3, decode.optional(decode.bool))
-    use wats_per_hour <- decode.field(4, decode.optional(decode.int))
-    use hours_on <- decode.field(5, decode.optional(decode.int))
-    use minutes_on <- decode.field(6, decode.optional(decode.int))
+    use number <- decode.field(1, decode.int)
+    use lab_id <- decode.field(2, decode.int)
+    use status <- decode.field(3, decode.bool)
+    use wats_per_hour <- decode.field(4, decode.int)
+    use hours_on <- decode.field(5, decode.int)
+    use minutes_on <- decode.field(6, decode.int)
     decode.success(
       NewDeviceRow(
         mac_address:,
@@ -265,12 +265,12 @@ FROM
 pub type GetDevicesInLabRow {
   GetDevicesInLabRow(
     mac_address: String,
-    number: Option(Int),
-    lab_id: Option(Int),
-    status: Option(Bool),
-    wats_per_hour: Option(Int),
-    hours_on: Option(Int),
-    minutes_on: Option(Int),
+    number: Int,
+    lab_id: Int,
+    status: Bool,
+    wats_per_hour: Int,
+    hours_on: Int,
+    minutes_on: Int,
   )
 }
 
@@ -283,12 +283,12 @@ pub type GetDevicesInLabRow {
 pub fn get_devices_in_lab(db, arg_1) {
   let decoder = {
     use mac_address <- decode.field(0, decode.string)
-    use number <- decode.field(1, decode.optional(decode.int))
-    use lab_id <- decode.field(2, decode.optional(decode.int))
-    use status <- decode.field(3, decode.optional(decode.bool))
-    use wats_per_hour <- decode.field(4, decode.optional(decode.int))
-    use hours_on <- decode.field(5, decode.optional(decode.int))
-    use minutes_on <- decode.field(6, decode.optional(decode.int))
+    use number <- decode.field(1, decode.int)
+    use lab_id <- decode.field(2, decode.int)
+    use status <- decode.field(3, decode.bool)
+    use wats_per_hour <- decode.field(4, decode.int)
+    use hours_on <- decode.field(5, decode.int)
+    use minutes_on <- decode.field(6, decode.int)
     decode.success(
       GetDevicesInLabRow(
         mac_address:,

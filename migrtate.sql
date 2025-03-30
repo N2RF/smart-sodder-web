@@ -13,12 +13,12 @@ CREATE TABLE labs (
 
 CREATE TABLE devices (
     mac_address TEXT,
-    number INT,
-    lab_id INT,
-    status boolean,
-    wats_per_hour INT,
-    hours_on INT,
-    minutes_on INT,
+    number INT  NOT NULL,
+    lab_id INT  NOT NULL,
+    status boolean  NOT NULL,
+    wats_per_hour INT  NOT NULL,
+    hours_on INT  NOT NULL,
+    minutes_on INT  NOT NULL,
     PRIMARY KEY (mac_address),
     FOREIGN KEY (lab_id) REFERENCES labs(id)
 );
