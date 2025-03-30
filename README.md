@@ -1,4 +1,4 @@
-# backend
+# web
 
 [![Package Version](https://img.shields.io/hexpm/v/backend)](https://hex.pm/packages/backend)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/backend/)
